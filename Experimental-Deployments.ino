@@ -22,10 +22,10 @@ TalonSR shooter = TalonSR(maestro, 2);
 PololuG2 intakemotor = PololuG2(maestro, 3, 4, 5);
 
 // Drive base construction
-PololuG2 motor1 = PololuG2(2, 3, 4);
-PololuG2 motor4 = PololuG2(5, 6, 7);
-PololuG2 motor3 = PololuG2(8, 9, 10);
-PololuG2 motor2 = PololuG2(13, 11, 12);
+PololuG2 motor1 = PololuG2(maestro, 6, 7, 8);
+PololuG2 motor2 = PololuG2(maestro, 9, 10, 11);
+PololuG2 motor3 = PololuG2(maestro, 12, 13, 14);
+PololuG2 motor4 = PololuG2(maestro, 15, 16, 17);
 
 // Can construct drive bases using any speed controllers extended from Motor class. (TalonSR and PololuG2).
 HolonomicDrive chassis = HolonomicDrive(motor1, motor2, motor3, motor4);
@@ -64,7 +64,8 @@ void setup() {
   maestro.setUpdatePeriod(10); // speed up maestro updates.
 
   // reverses forward direction of left tankdrive wheels.
-  chassis.reverseMotor(3,true);
+  //  chassis.reverseMotor(3,true);
+  chassis.reverseRightMotors(true);
 }
 
 void ledService()
@@ -162,18 +163,20 @@ void loop() {
 
   if (network.getLastPS2PacketTime() > 500)
   {
-    digitalWrite(2, LOW);
-    digitalWrite(5, LOW);
-    digitalWrite(8, LOW);
-    digitalWrite(13, LOW);
-    maestro.queTarget(3, LOW);
+    maestro.queTarget(3, 0);
+    maestro.queTarget(6, 0);
+    maestro.queTarget(9, 0);
+    maestro.queTarget(12, 0);
+    maestro.queTarget(15, 0);
+
     shooter.setPower(0);
   } else {
-    digitalWrite(2, HIGH);
-    digitalWrite(5, HIGH);
-    digitalWrite(8, HIGH);
-    digitalWrite(13, HIGH);
-    maestro.queTarget(3, HIGH);
+    maestro.queTarget(3, 7000);
+    maestro.queTarget(6, 7000);
+    maestro.queTarget(9, 7000);
+    maestro.queTarget(12, 7000);
+    maestro.queTarget(15, 7000);
+    maestro.queTarget(3, 7000);
 
   }
 
