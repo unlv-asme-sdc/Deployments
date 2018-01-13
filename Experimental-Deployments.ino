@@ -68,12 +68,6 @@ void setup() {
   //  chassis.reverseMotor(3,true);
   chassis.reverseRightMotors(true);
   //shooter_servo.setPosition(shooter_pos);
-
-  //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX TEST SATURDAY 1/13/2018
-  intakemotor.setPower(-1); // all speed controllers extended from Motor class have setPower(float power) function. Value between -1 (FUll Reverse) to 1 (FULL Forward).
-  chamber.setPosition(170); // HS485 servos have setPosition(float position). Value between 0 and 180 degrees.
-  intake.setPosition(90.7);
-  //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 }
 
 void ledService()
@@ -135,7 +129,7 @@ void loop() {
     {
       intakemotor.setPower(-1); // all speed controllers extended from Motor class have setPower(float power) function. Value between -1 (FUll Reverse) to 1 (FULL Forward).
       chamber.setPosition(170); // HS485 servos have setPosition(float position). Value between 0 and 180 degrees.
-      //intake.setPosition(90.7);
+      intake.setPosition(90.7);
     }
 
     // return to idle positions
@@ -143,7 +137,7 @@ void loop() {
     {
       intakemotor.setPower(0);
       chamber.setPosition(128);
-      //intake.setPosition(178);
+      intake.setPosition(178);
     }
 
     // Outake
@@ -151,14 +145,14 @@ void loop() {
     {
       intakemotor.setPower(1);
       chamber.setPosition(170);
-      //intake.setPosition(90.7);
+      intake.setPosition(90.7);
     }
 
     if (L1_Released)
     {
       intakemotor.setPower(0);
       chamber.setPosition(128);
-      //intake.setPosition(178);
+      intake.setPosition(178);
     }
 
     // Actuate Chamber (put tennis ball into shooter)
