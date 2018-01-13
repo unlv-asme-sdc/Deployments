@@ -9,8 +9,7 @@
 #include <PS2X_lib.h>
 #include <HS485.h>
 #include <NetworkTable.h>
-
-
+#include <AStar32U4.h>
 // MiniMaestroServices construction
 SoftwareSerial maestroSerial(22, 23); // Connect A1 to Maestro's RX. A0 must remain disconnected.
 MiniMaestroService maestro(maestroSerial);
@@ -18,8 +17,10 @@ MiniMaestroService maestro(maestroSerial);
 // Subsystems construction
 HS485 chamber = HS485(maestro, 0); // Some objects can use MiniMaestroService to controll devices. See docs.
 HS485 intake = HS485(maestro, 1);
+HS485 shooter_servo = HS485(maestro, 3);
+float shooter_pos = 120;
 TalonSR shooter = TalonSR(maestro, 2);
-PololuG2 intakemotor = PololuG2(maestro, 3, 4, 5);
+PololuG2 intakemotor = PololuG2(2, 3, 4);
 
 // Drive base construction
 PololuG2 motor1 = PololuG2(maestro, 6, 7, 8);
@@ -61,11 +62,12 @@ void setup() {
 
   // sets ps2x controlls.
   network.setPS2(ps2x);
-  maestro.setUpdatePeriod(10); // speed up maestro updates.
+  maestro.setUpdatePeriod(20); // speed up maestro updates.
 
   // reverses forward direction of left tankdrive wheels.
   //  chassis.reverseMotor(3,true);
   chassis.reverseRightMotors(true);
+  //shooter_servo.setPosition(shooter_pos);
 }
 
 void ledService()
@@ -97,6 +99,8 @@ void loop() {
     bool L2 = ps2x.Button(PSB_L2);
     bool R1 = ps2x.Button(PSB_R1);
     bool R2 = ps2x.Button(PSB_R2);
+    bool PAD_Up = ps2x.Button(PSB_PAD_UP);
+    bool PAD_Down = ps2x.Button(PSB_PAD_DOWN);
     bool R1_Pressed = ps2x.ButtonPressed(PSB_R1);
     bool R1_Released = ps2x.ButtonReleased(PSB_R1);
     bool L1_Pressed = ps2x.ButtonPressed(PSB_L1);
@@ -105,7 +109,20 @@ void loop() {
     bool R2_Released = ps2x.ButtonReleased(PSB_R2);
     bool L2_Pressed = ps2x.ButtonPressed(PSB_L2);
     bool L2_Released = ps2x.ButtonReleased(PSB_L2);
+    
 
+    // shooter servo
+    if(PAD_Up)
+    {
+      shooter_pos += 0.25;
+    }
+    if(PAD_Down)
+    {
+      shooter_pos -= 0.25;
+    }
+    shooter_pos = constrain(shooter_pos, 55, 135);
+    shooter_servo.setPosition(shooter_pos);
+    //Serial.println(readBatteryMillivoltsSV());
     // Intake
     // actuate devices to intake tennis balls. Arguments are experimetnally determined / calculated.
     if (R1_Pressed)
@@ -163,7 +180,8 @@ void loop() {
 
   if (network.getLastPS2PacketTime() > 500)
   {
-    maestro.queTarget(3, 0);
+    //maestro.queTarget(3, 0);
+    digitalWrite(2, LOW);
     maestro.queTarget(6, 0);
     maestro.queTarget(9, 0);
     maestro.queTarget(12, 0);
@@ -171,12 +189,13 @@ void loop() {
 
     shooter.setPower(0);
   } else {
-    maestro.queTarget(3, 7000);
+    digitalWrite(2, HIGH);
+    //maestro.queTarget(3, 7000);
     maestro.queTarget(6, 7000);
     maestro.queTarget(9, 7000);
     maestro.queTarget(12, 7000);
     maestro.queTarget(15, 7000);
-    maestro.queTarget(3, 7000);
+    //maestro.queTarget(3, 7000);
 
   }
 
