@@ -10,6 +10,9 @@
 #include <HS485.h>
 #include <NetworkTable.h>
 #include <AStar32U4.h>
+// Blue #1 PSS_RX FIX - Mode of last 3 values selected.
+float pss_rx_values[3];
+unsigned char pss_rx_iterator;
 // MiniMaestroServices construction
 SoftwareSerial maestroSerial(22, 23); // Connect A1 to Maestro's RX. A0 must remain disconnected.
 MiniMaestroService maestro(maestroSerial);
@@ -23,10 +26,10 @@ TalonSR shooter = TalonSR(maestro, 2);
 PololuG2 intakemotor = PololuG2(2, 3, 4);
 
 // Drive base construction
-PololuG2 motor1 = PololuG2(maestro, 6, 7, 8);
-PololuG2 motor2 = PololuG2(maestro, 9, 10, 11);
-PololuG2 motor3 = PololuG2(maestro, 12, 13, 14);
-PololuG2 motor4 = PololuG2(maestro, 15, 16, 17);
+PololuG2 motor1 = PololuG2(maestro, 6, 7, 8, true);
+PololuG2 motor2 = PololuG2(maestro, 9, 10, 11, true);
+PololuG2 motor3 = PololuG2(maestro, 12, 13, 14, true);
+PololuG2 motor4 = PololuG2(maestro, 15, 16, 17, true);
 
 // Can construct drive bases using any speed controllers extended from Motor class. (TalonSR and PololuG2).
 HolonomicDrive chassis = HolonomicDrive(motor1, motor2, motor3, motor4);
@@ -83,13 +86,12 @@ void loop() {
   ledService();
 
   // drive chassis
-  Vec2 vec = Vec2(ps2x.JoyStick(PSS_LX), -ps2x.JoyStick(PSS_LY));
-  chassis.drive(Vec2::angle(vec), Vec2::magnitude(vec), -ps2x.JoyStick(PSS_RX));
+  
 
   // update target values every 9ms
   if (millis() - last_update > 9)
   {
-    //Serial.println(leftmotor1.getPower());
+
     // Button Variables
     bool cross = ps2x.Button(PSB_CROSS);
     bool circle = ps2x.Button(PSB_CIRCLE);
@@ -99,6 +101,10 @@ void loop() {
     bool L2 = ps2x.Button(PSB_L2);
     bool R1 = ps2x.Button(PSB_R1);
     bool R2 = ps2x.Button(PSB_R2);
+    bool Triangle = ps2x.Button(PSB_TRIANGLE);
+    bool Square = ps2x.Button(PSB_SQUARE);
+    bool Cross = ps2x.Button(PSB_CROSS);
+    bool Circle = ps2x.Button(PSB_CIRCLE);
     bool PAD_Up = ps2x.Button(PSB_PAD_UP);
     bool PAD_Down = ps2x.Button(PSB_PAD_DOWN);
     bool R1_Pressed = ps2x.ButtonPressed(PSB_R1);
@@ -109,6 +115,40 @@ void loop() {
     bool R2_Released = ps2x.ButtonReleased(PSB_R2);
     bool L2_Pressed = ps2x.ButtonPressed(PSB_L2);
     bool L2_Released = ps2x.ButtonReleased(PSB_L2);
+
+    Vec2 vec = Vec2(ps2x.JoyStick(PSS_LX), -ps2x.JoyStick(PSS_LY));
+    pss_rx_values[pss_rx_iterator] = -ps2x.JoyStick(PSS_RX);
+    pss_rx_iterator++;
+    if(pss_rx_iterator > 2)
+    {
+      pss_rx_iterator = 0;
+    }
+    unsigned char zero_count;
+    for(unsigned char i = 0; i < 3; i++)
+    {
+      if(pss_rx_values[i] == 0)
+      {
+        zero_count++;
+      }
+    }
+    if(!Cross && !Square && !Triangle && !Circle)
+    {
+      //
+      if(zero_count >= 2)
+      {
+        chassis.drive(Vec2::angle(vec), Vec2::magnitude(vec), 0);
+      } else {
+        chassis.drive(Vec2::angle(vec), Vec2::magnitude(vec), -ps2x.JoyStick(PSS_RX));
+      }
+    } else if (Triangle) {
+      chassis.drive(1.57, 0.5, 0);
+    } else if (Square) {
+      chassis.drive(3.14, 0.5, 0);
+    } else if (Circle) {
+      chassis.drive(0, 0.5, 0);
+    } else if (Cross) {
+      chassis.drive(4.71, 0.5, 0);
+    }
     
 
     // shooter servo
@@ -176,6 +216,8 @@ void loop() {
 
     ps2x.read_gamepad(); // clear release&pressed flags.
     last_update = millis();
+
+    PololuG2::iterate();
   }
 
   if (network.getLastPS2PacketTime() > 500)
