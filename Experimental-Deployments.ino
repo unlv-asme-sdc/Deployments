@@ -10,9 +10,7 @@
 #include <HS485.h>
 #include <NetworkTable.h>
 #include <AStar32U4.h>
-// Blue #1 PSS_RX FIX - Mode of last 3 values selected.
-float pss_rx_values[3];
-unsigned char pss_rx_iterator;
+#include <LSMHeadless.h>
 // MiniMaestroServices construction
 SoftwareSerial maestroSerial(22, 23); // Connect A1 to Maestro's RX. A0 must remain disconnected.
 MiniMaestroService maestro(maestroSerial);
@@ -38,6 +36,11 @@ HolonomicDrive chassis = HolonomicDrive(motor1, motor2, motor3, motor4);
 PS2X ps2x;
 NetworkTable network = NetworkTable(10, 10);
 PacketSerial myPacketSerial;
+
+// LSM Devices (GYRO)
+LSMHeadless gyro;
+bool armMotors = true;
+bool gyrodrive = false;
 
 float leftvalue = 0;
 float rightvalue = 0;
@@ -68,9 +71,11 @@ void setup() {
   maestro.setUpdatePeriod(20); // speed up maestro updates.
 
   // reverses forward direction of left tankdrive wheels.
-  //  chassis.reverseMotor(3,true);
   chassis.reverseRightMotors(true);
-  //shooter_servo.setPosition(shooter_pos);
+  Serial.println("on");
+  gyro.init();
+  gyro.calibrate();
+  Serial.println("die");
 }
 
 void ledService()
@@ -93,18 +98,14 @@ void loop() {
   {
 
     // Button Variables
-    bool cross = ps2x.Button(PSB_CROSS);
-    bool circle = ps2x.Button(PSB_CIRCLE);
-    bool triangle = ps2x.Button(PSB_TRIANGLE);
-    bool square = ps2x.Button(PSB_SQUARE);
     bool L1 = ps2x.Button(PSB_L1);
     bool L2 = ps2x.Button(PSB_L2);
     bool R1 = ps2x.Button(PSB_R1);
     bool R2 = ps2x.Button(PSB_R2);
-    bool Triangle = ps2x.Button(PSB_TRIANGLE);
-    bool Square = ps2x.Button(PSB_SQUARE);
-    bool Cross = ps2x.Button(PSB_CROSS);
-    bool Circle = ps2x.Button(PSB_CIRCLE);
+    bool Triangle = ps2x.ButtonPressed(PSB_TRIANGLE);
+    bool Square = ps2x.ButtonPressed(PSB_SQUARE);
+    bool Cross = ps2x.ButtonPressed(PSB_CROSS);
+    bool Circle = ps2x.ButtonPressed(PSB_CIRCLE);
     bool PAD_Up = ps2x.Button(PSB_PAD_UP);
     bool PAD_Down = ps2x.Button(PSB_PAD_DOWN);
     bool R1_Pressed = ps2x.ButtonPressed(PSB_R1);
@@ -115,39 +116,31 @@ void loop() {
     bool R2_Released = ps2x.ButtonReleased(PSB_R2);
     bool L2_Pressed = ps2x.ButtonPressed(PSB_L2);
     bool L2_Released = ps2x.ButtonReleased(PSB_L2);
+    bool Select_Pressed = ps2x.ButtonPressed(PSB_SELECT);
+    bool Start_Pressed = ps2x.ButtonPressed(PSB_START);
 
     Vec2 vec = Vec2(ps2x.JoyStick(PSS_LX), -ps2x.JoyStick(PSS_LY));
-    pss_rx_values[pss_rx_iterator] = -ps2x.JoyStick(PSS_RX);
-    pss_rx_iterator++;
-    if(pss_rx_iterator > 2)
+    if(gyrodrive)
     {
-      pss_rx_iterator = 0;
+    	chassis.drive(Vec2::angle(vec) + gyro.getRelativeYaw()*3.14/180, Vec2::magnitude(vec), -ps2x.JoyStick(PSS_RX));
+    } else {
+	    chassis.drive(Vec2::angle(vec), Vec2::magnitude(vec), -ps2x.JoyStick(PSS_RX));
     }
-    unsigned char zero_count;
-    for(unsigned char i = 0; i < 3; i++)
+    if(Cross)
     {
-      if(pss_rx_values[i] == 0)
-      {
-        zero_count++;
-      }
+    	gyrodrive = !gyrodrive;
     }
-    if(!Cross && !Square && !Triangle && !Circle)
+    if(Triangle)
     {
-      //
-      if(zero_count >= 2)
-      {
-        chassis.drive(Vec2::angle(vec), Vec2::magnitude(vec), 0);
-      } else {
-        chassis.drive(Vec2::angle(vec), Vec2::magnitude(vec), -ps2x.JoyStick(PSS_RX));
-      }
-    } else if (Triangle) {
-      chassis.drive(1.57, 0.5, 0);
-    } else if (Square) {
-      chassis.drive(3.14, 0.5, 0);
-    } else if (Circle) {
-      chassis.drive(0, 0.5, 0);
-    } else if (Cross) {
-      chassis.drive(4.71, 0.5, 0);
+    	gyro.zero();
+    }
+    if(Square)
+    {
+    	gyro.trim(1);
+    }
+    if(Circle)
+    {
+    	gyro.trim(-1);
     }
     
 
@@ -162,7 +155,6 @@ void loop() {
     }
     shooter_pos = constrain(shooter_pos, 55, 135);
     shooter_servo.setPosition(shooter_pos);
-    //Serial.println(readBatteryMillivoltsSV());
     // Intake
     // actuate devices to intake tennis balls. Arguments are experimetnally determined / calculated.
     if (R1_Pressed)
@@ -218,9 +210,19 @@ void loop() {
     last_update = millis();
 
     PololuG2::iterate();
+
+	// Arm Motors
+	if(Select_Pressed)
+	{
+		armMotors = !armMotors;
+	}
+	if(Start_Pressed && !armMotors)
+	{
+		gyro.calibrate();
+	}
   }
 
-  if (network.getLastPS2PacketTime() > 500)
+  if (network.getLastPS2PacketTime() > 500 || !armMotors)
   {
     //maestro.queTarget(3, 0);
     digitalWrite(2, LOW);
