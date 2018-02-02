@@ -21,7 +21,7 @@ HS485 intake = HS485(maestro, 1);
 HS485 shooter_servo = HS485(maestro, 3);
 float shooter_pos = 120;
 TalonSR shooter = TalonSR(maestro, 2);
-PololuG2 intakemotor = PololuG2(2, 3, 4);
+PololuG2 intakemotor = PololuG2(4, 5, 6);
 
 // Drive base construction
 PololuG2 motor1 = PololuG2(maestro, 6, 7, 8, true);
