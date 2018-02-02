@@ -46,9 +46,11 @@ float leftvalue = 0;
 float rightvalue = 0;
 unsigned long last_blink;
 unsigned long last_update;
+
+// speed caps
+float thrustcap = 0.7;
+float turncap = 0.7;
 void setup() {
-  // prevents devices from actuating on startup.
-  delay(1000);
   // initialize MiniMaestroService communication
   maestroSerial.begin(115200);
 
@@ -74,6 +76,9 @@ void setup() {
   chassis.reverseRightMotors(true);
   gyro.init();
   gyro.calibrate();
+
+  // prevents devices from actuating on startup.
+  delay(1500);
 }
 
 void ledService()
@@ -121,9 +126,9 @@ gyro.iterate();
     Vec2 vec = Vec2(ps2x.JoyStick(PSS_LX), -ps2x.JoyStick(PSS_LY));
     if(gyrodrive)
     {
-    	chassis.drive(Vec2::angle(vec) - gyro.getRelativeYaw()*3.14/180, Vec2::magnitude(vec), -ps2x.JoyStick(PSS_RX));
+    	chassis.drive(Vec2::angle(vec) - gyro.getRelativeYaw()*3.14/180, Vec2::magnitude(vec)*thrustcap, -ps2x.JoyStick(PSS_RX)*turncap);
     } else {
-	    chassis.drive(Vec2::angle(vec), Vec2::magnitude(vec), -ps2x.JoyStick(PSS_RX));
+	    chassis.drive(Vec2::angle(vec), Vec2::magnitude(vec)*thrustcap, -ps2x.JoyStick(PSS_RX)*turncap);
     }
     if(Cross)
     {
@@ -217,7 +222,13 @@ gyro.iterate();
 	}
 	if(Start_Pressed && !armMotors)
 	{
-		gyro.calibrate();
+		if(gyro.getInitialized())
+		{
+			gyro.calibrate();
+		} else {
+			gyro.init();
+		}
+
 	}
   }
 
