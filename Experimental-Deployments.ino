@@ -72,10 +72,8 @@ void setup() {
 
   // reverses forward direction of left tankdrive wheels.
   chassis.reverseRightMotors(true);
-  Serial.println("on");
   gyro.init();
   gyro.calibrate();
-  Serial.println("die");
 }
 
 void ledService()
@@ -86,6 +84,7 @@ void ledService()
 void loop() {
   // trigger network services
   myPacketSerial.update();
+gyro.iterate();
 
   // trigger led (human readable) services.
   ledService();
@@ -122,7 +121,7 @@ void loop() {
     Vec2 vec = Vec2(ps2x.JoyStick(PSS_LX), -ps2x.JoyStick(PSS_LY));
     if(gyrodrive)
     {
-    	chassis.drive(Vec2::angle(vec) + gyro.getRelativeYaw()*3.14/180, Vec2::magnitude(vec), -ps2x.JoyStick(PSS_RX));
+    	chassis.drive(Vec2::angle(vec) - gyro.getRelativeYaw()*3.14/180, Vec2::magnitude(vec), -ps2x.JoyStick(PSS_RX));
     } else {
 	    chassis.drive(Vec2::angle(vec), Vec2::magnitude(vec), -ps2x.JoyStick(PSS_RX));
     }
