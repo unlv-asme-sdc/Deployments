@@ -235,7 +235,7 @@ gyro.iterate();
   if (network.getLastPS2PacketTime() > 500 || !armMotors)
   {
     //maestro.queTarget(3, 0);
-    digitalWrite(2, LOW);
+    digitalWrite(4, LOW);
     maestro.queTarget(6, 0);
     maestro.queTarget(9, 0);
     maestro.queTarget(12, 0);
@@ -243,7 +243,7 @@ gyro.iterate();
 
     shooter.setPower(0);
   } else {
-    digitalWrite(2, HIGH);
+    digitalWrite(4, HIGH);
     //maestro.queTarget(3, 7000);
     maestro.queTarget(6, 7000);
     maestro.queTarget(9, 7000);
