@@ -10,6 +10,7 @@
 #include <HS485.h>
 #include <NetworkTable.h>
 #include <AStar32U4.h>
+#include <OSubsystems.h>
 // Blue #1 PSS_RX FIX - Mode of last 3 values selected.
 float pss_rx_values[3];
 unsigned char pss_rx_iterator;
@@ -34,6 +35,7 @@ PololuG2 motor4 = PololuG2(maestro, 15, 16, 17, true);
 // Can construct drive bases using any speed controllers extended from Motor class. (TalonSR and PololuG2).
 HolonomicDrive chassis = HolonomicDrive(motor1, motor2, motor3, motor4);
 
+OSubsystems subsystems = OSubsystems(chassis, shooter, shooter_servo, chamber, intakemotor, intake);
 // Network & Controller construction
 PS2X ps2x;
 NetworkTable network = NetworkTable(10, 10);
