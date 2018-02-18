@@ -36,6 +36,14 @@ PololuG2 motor4 = PololuG2(maestro, 15, 16, 17, true);
 HolonomicDrive chassis = HolonomicDrive(motor1, motor2, motor3, motor4);
 
 OSubsystems subsystems = OSubsystems(chassis, shooter, shooter_servo, chamber, intakemotor, intake);
+subsystems.chamber_intake_pos = 170;
+subsystems.chamber_shoot_pos = 30;
+subsystems.chamber_idle_pos = 128;
+subsystems.intake_idle_pos = 178;
+subsystems.intake_intake_pos = 90.7;
+subsystems.intake_roller_in = -1;
+subsystems.intake_roller_out = 1;
+
 // Network & Controller construction
 PS2X ps2x;
 NetworkTable network = NetworkTable(10, 10);
@@ -221,6 +229,7 @@ void loop() {
 
     PololuG2::iterate();
   }
+	subsystems.iterate();
 
   if (network.getLastPS2PacketTime() > 500)
   {
