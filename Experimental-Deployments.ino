@@ -171,57 +171,50 @@ void loop() {
       shooter_pos -= 0.25;
     }
     shooter_pos = constrain(shooter_pos, 55, 135);
-    shooter_servo.setPosition(shooter_pos);
+	subsystems.setShooterAngle(shooter_pos);
+    //shooter_servo.setPosition(shooter_pos);
     //Serial.println(readBatteryMillivoltsSV());
     // Intake
     // actuate devices to intake tennis balls. Arguments are experimetnally determined / calculated.
     if (R1_Pressed)
     {
-      intakemotor.setPower(-1); // all speed controllers extended from Motor class have setPower(float power) function. Value between -1 (FUll Reverse) to 1 (FULL Forward).
-      chamber.setPosition(170); // HS485 servos have setPosition(float position). Value between 0 and 180 degrees.
-      intake.setPosition(90.7);
+	subsystems.setSystemsIntake();
     }
 
     // return to idle positions
     if (R1_Released)
     {
-      intakemotor.setPower(0);
-      chamber.setPosition(128);
-      intake.setPosition(178);
+	subsystems.setSystemsIdle();
     }
 
     // Outake
     if (L1_Pressed)
     {
-      intakemotor.setPower(1);
-      chamber.setPosition(170);
-      intake.setPosition(90.7);
+	subsystems.setSystemsOuttake();
     }
 
     if (L1_Released)
     {
-      intakemotor.setPower(0);
-      chamber.setPosition(128);
-      intake.setPosition(178);
+	subsystems.setSystemsIdle();
     }
 
     // Actuate Chamber (put tennis ball into shooter)
     if (R2_Pressed)
     {
-      chamber.setPosition(30);
+	subsystems.setChamber(subsystems.chamber_shoot_pos);
     }
 
     if (R2_Released)
     {
-      chamber.setPosition(128);
+	subsystems.setChamber(subsystems.chamber_idle_pos);
     }
 
     //Arm Shooter
     if (L2)
     {
-      shooter.setPower(-1);
+	subsystems.setShooter(-1);
     } else {
-      shooter.setPower(0);
+	subsystems.setShooter(0);
     }
 
     ps2x.read_gamepad(); // clear release&pressed flags.
