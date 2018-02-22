@@ -201,20 +201,21 @@ void loop() {
     // Actuate Chamber (put tennis ball into shooter)
     if (R2_Pressed)
     {
-	subsystems.setChamber(subsystems.chamber_shoot_pos);
-    }
-
-    if (R2_Released)
-    {
-	subsystems.setChamber(subsystems.chamber_idle_pos);
+	subsystems.pushSequence(CHAMBER_IDLE,0);
+	subsystems.pushSequence(SHOOTER_POWER, 400, (float)0.0);
+	subsystems.pushSequence(CHAMBER_SHOOT, 400);
+	subsystems.pushSequence(SHOOTER_POWER, 0, (float)-1.0);
+	subsystems.pushSequence(CHAMBER_IDLE, 0, true);
     }
 
     //Arm Shooter
     if (L2)
     {
-	subsystems.setShooter(-1);
-    } else {
-	subsystems.setShooter(0);
+	subsystems.pushSequence(CHAMBER_IDLE,0);
+	subsystems.pushSequence(SHOOTER_POWER, 400, (float)0.0);
+	subsystems.pushSequence(CHAMBER_SHOOT, 400);
+	subsystems.pushSequence(SHOOTER_POWER, 0, (float)-0.70);
+	subsystems.pushSequence(CHAMBER_IDLE, 0, true);
     }
 
     ps2x.read_gamepad(); // clear release&pressed flags.
