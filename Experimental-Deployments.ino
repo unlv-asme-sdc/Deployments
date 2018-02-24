@@ -11,6 +11,7 @@
 #include <NetworkTable.h>
 #include <AStar32U4.h>
 #include <LSMHeadless.h>
+#include <OSubsystems.h>
 // MiniMaestroServices construction
 SoftwareSerial maestroSerial(22, 23); // Connect A1 to Maestro's RX. A0 must remain disconnected.
 MiniMaestroService maestro(maestroSerial);
@@ -32,6 +33,8 @@ PololuG2 motor4 = PololuG2(maestro, 15, 16, 17, true);
 // Can construct drive bases using any speed controllers extended from Motor class. (TalonSR and PololuG2).
 HolonomicDrive chassis = HolonomicDrive(motor1, motor2, motor3, motor4);
 
+OSubsystems subsystems = OSubsystems(chassis, shooter, shooter_servo, chamber, intakemotor, intake);
+
 // Network & Controller construction
 PS2X ps2x;
 NetworkTable network = NetworkTable(10, 10);
@@ -51,6 +54,15 @@ unsigned long last_update;
 float thrustcap = 0.7;
 float turncap = 0.7;
 void setup() {
+	subsystems.chamber_intake_pos = 170;
+	subsystems.chamber_shoot_pos = 30;
+	subsystems.chamber_idle_pos = 128;
+	subsystems.intake_idle_pos = 178;
+	subsystems.intake_intake_pos = 90.7;
+	subsystems.intake_roller_in = -1;
+	subsystems.intake_roller_out = 1;
+  // prevents devices from actuating on startup.
+  delay(1000);
   // initialize MiniMaestroService communication
   maestroSerial.begin(115200);
 
@@ -148,66 +160,49 @@ gyro.iterate();
     }
     
 
-    // shooter servo
-    if(PAD_Up)
-    {
-      shooter_pos += 0.25;
-    }
-    if(PAD_Down)
-    {
-      shooter_pos -= 0.25;
-    }
-    shooter_pos = constrain(shooter_pos, 55, 135);
-    shooter_servo.setPosition(shooter_pos);
+	subsystems.setShooterAngle(shooter_pos);
     // Intake
     // actuate devices to intake tennis balls. Arguments are experimetnally determined / calculated.
     if (R1_Pressed)
     {
-      intakemotor.setPower(-1); // all speed controllers extended from Motor class have setPower(float power) function. Value between -1 (FUll Reverse) to 1 (FULL Forward).
-      chamber.setPosition(170); // HS485 servos have setPosition(float position). Value between 0 and 180 degrees.
-      intake.setPosition(90.7);
+	subsystems.setSystemsIntake();
     }
 
     // return to idle positions
     if (R1_Released)
     {
-      intakemotor.setPower(0);
-      chamber.setPosition(128);
-      intake.setPosition(178);
+	subsystems.setSystemsIdle();
     }
 
     // Outake
     if (L1_Pressed)
     {
-      intakemotor.setPower(1);
-      chamber.setPosition(170);
-      intake.setPosition(90.7);
+	subsystems.setSystemsOuttake();
     }
 
     if (L1_Released)
     {
-      intakemotor.setPower(0);
-      chamber.setPosition(128);
-      intake.setPosition(178);
+	subsystems.setSystemsIdle();
     }
 
     // Actuate Chamber (put tennis ball into shooter)
     if (R2_Pressed)
     {
-      chamber.setPosition(30);
-    }
-
-    if (R2_Released)
-    {
-      chamber.setPosition(128);
+	subsystems.pushSequence(CHAMBER_IDLE,0);
+	subsystems.pushSequence(SHOOTER_POWER, 400, (float)0.0);
+	subsystems.pushSequence(CHAMBER_SHOOT, 400);
+	subsystems.pushSequence(SHOOTER_POWER, 0, (float)-1.0);
+	subsystems.pushSequence(CHAMBER_IDLE, 0, true);
     }
 
     //Arm Shooter
     if (L2)
     {
-      shooter.setPower(-1);
-    } else {
-      shooter.setPower(0);
+	subsystems.pushSequence(CHAMBER_IDLE,0);
+	subsystems.pushSequence(SHOOTER_POWER, 400, (float)0.0);
+	subsystems.pushSequence(CHAMBER_SHOOT, 400);
+	subsystems.pushSequence(SHOOTER_POWER, 0, (float)-0.70);
+	subsystems.pushSequence(CHAMBER_IDLE, 0, true);
     }
 
     ps2x.read_gamepad(); // clear release&pressed flags.
@@ -231,6 +226,7 @@ gyro.iterate();
 
 	}
   }
+	subsystems.iterate();
 
   if (network.getLastPS2PacketTime() > 500 || !armMotors)
   {
