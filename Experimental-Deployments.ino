@@ -1,6 +1,3 @@
-
-
-
 #include <SoftwareSerial.h>
 #include <MiniMaestroService.h>
 #include <TalonSR.h>
@@ -9,11 +6,18 @@
 #include <PS2X_lib.h>
 #include <HS485.h>
 #include <NetworkTable.h>
-#include <AStar32U4.h>
+//#include <AStar32U4.h>
 #include <LSMHeadless.h>
 #include <OSubsystems.h>
+// DELETE MEEEE
+float shooterpower = 0;
+
+
+//
+
 // MiniMaestroServices construction
-SoftwareSerial maestroSerial(22, 23); // Connect A1 to Maestro's RX. A0 must remain disconnected.
+//SoftwareSerial maestroSerial(22, 23); // Connect A1 to Maestro's RX. A0 must remain disconnected.
+#define maestroSerial Serial1
 MiniMaestroService maestro(maestroSerial);
 
 // Subsystems construction
@@ -64,18 +68,16 @@ void setup() {
   // prevents devices from actuating on startup.
   delay(1000);
   // initialize MiniMaestroService communication
-  maestroSerial.begin(115200);
 
   // enable ps2x networking
   ps2x.config_gamepad();
   ps2x.read_gamepad();
 
   // enable debug usb (Serial) and radio serial (Serial1)
-  Serial.begin(115200);
-  Serial1.begin(115200);
+  maestroSerial.begin(115200);
 
   // binds radio PacketSerial(encoding&decoding services) to NetworkTable class. Uses lambda expressions.
-  myPacketSerial.setStream(&Serial1);
+  myPacketSerial.begin(115200);
   myPacketSerial.setPacketHandler([](const uint8_t* buffer, size_t size) {
     network.processPacketFromSender(myPacketSerial, buffer, size);
   });
