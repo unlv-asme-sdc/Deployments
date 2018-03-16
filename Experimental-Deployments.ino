@@ -124,8 +124,9 @@ gyro.iterate();
     bool Square = ps2x.ButtonPressed(PSB_SQUARE);
     bool Cross = ps2x.ButtonPressed(PSB_CROSS);
     bool Circle = ps2x.ButtonPressed(PSB_CIRCLE);
-    bool PAD_Up = ps2x.Button(PSB_PAD_UP);
-    bool PAD_Down = ps2x.Button(PSB_PAD_DOWN);
+    bool PAD_Up = ps2x.ButtonPressed(PSB_PAD_UP);
+    bool PAD_Down = ps2x.ButtonPressed(PSB_PAD_DOWN);
+    bool PAD_Right = ps2x.ButtonPressed(PSB_PAD_RIGHT);
     bool R1_Pressed = ps2x.ButtonPressed(PSB_R1);
     bool R1_Released = ps2x.ButtonReleased(PSB_R1);
     bool L1_Pressed = ps2x.ButtonPressed(PSB_L1);
@@ -136,6 +137,20 @@ gyro.iterate();
     bool L2_Released = ps2x.ButtonReleased(PSB_L2);
     bool Select_Pressed = ps2x.ButtonPressed(PSB_SELECT);
     bool Start_Pressed = ps2x.ButtonPressed(PSB_START);
+
+	if(PAD_Up)
+	{
+		shooterpower += .03;
+	}
+	if(PAD_Down)
+	{
+		shooterpower-= .03;
+	}
+	if(PAD_Right)
+	{
+		shooterpower = 0;
+	}
+	subsystems.setShooter(shooterpower);
 
     Vec2 vec = Vec2(ps2x.JoyStick(PSS_LX), -ps2x.JoyStick(PSS_LY));
     if(gyrodrive)
