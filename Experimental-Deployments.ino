@@ -16,7 +16,7 @@ float shooterpower = 0;
 //
 
 // MiniMaestroServices construction
-//SoftwareSerial maestroSerial(22, 23); // Connect A1 to Maestro's RX. A0 must remain disconnected.
+//SoftwareSerial Serial1(22, 23); // Connect A1 to Maestro's RX. A0 must remain disconnected.
 #define maestroSerial Serial1
 MiniMaestroService maestro(maestroSerial);
 
@@ -74,8 +74,7 @@ void setup() {
   ps2x.read_gamepad();
 
   // enable debug usb (Serial) and radio serial (Serial1)
-  maestroSerial.begin(115200);
-
+  maestroSerial.begin(57600); 
   // binds radio PacketSerial(encoding&decoding services) to NetworkTable class. Uses lambda expressions.
   myPacketSerial.begin(115200);
   myPacketSerial.setPacketHandler([](const uint8_t* buffer, size_t size) {
@@ -84,7 +83,7 @@ void setup() {
 
   // sets ps2x controlls.
   network.setPS2(ps2x);
-  maestro.setUpdatePeriod(20); // speed up maestro updates.
+  maestro.setUpdatePeriod(40); // speed up maestro updates.
 
   // reverses forward direction of left tankdrive wheels.
   chassis.reverseRightMotors(true);
