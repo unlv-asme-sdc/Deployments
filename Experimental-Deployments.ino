@@ -26,14 +26,12 @@ HS485 intake = HS485(maestro, 1);
 HS485 shooter_servo = HS485(maestro, 3);
 float shooter_pos = 120;
 TalonSR shooter = TalonSR(maestro, 2);
-PololuG2 intakemotor = PololuG2(4, 5, 6);
-
+PololuG2 intakemotor = PololuG2(maestro, 9, 10, 11, true);
 // Drive base construction
-PololuG2 motor1 = PololuG2(maestro, 6, 7, 8, true);
-PololuG2 motor2 = PololuG2(maestro, 9, 10, 11, true);
-PololuG2 motor3 = PololuG2(maestro, 12, 13, 14, true);
+PololuG2 motor1 = PololuG2(maestro, 12, 13, 14, true); 
+PololuG2 motor2 = PololuG2(2, 9, 7, true);
+PololuG2 motor3 = PololuG2(4, 10, 8, true);
 PololuG2 motor4 = PololuG2(maestro, 15, 16, 17, true);
-
 // Can construct drive bases using any speed controllers extended from Motor class. (TalonSR and PololuG2).
 HolonomicDrive chassis = HolonomicDrive(motor1, motor2, motor3, motor4);
 
@@ -55,14 +53,14 @@ unsigned long last_blink;
 unsigned long last_update;
 
 // speed caps
-float thrustcap = 0.7;
-float turncap = 0.7;
+float thrustcap = 1;
+float turncap = 1;
 void setup() {
-	subsystems.chamber_intake_pos = 170;
-	subsystems.chamber_shoot_pos = 30;
-	subsystems.chamber_idle_pos = 128;
-	subsystems.intake_idle_pos = 178;
-	subsystems.intake_intake_pos = 90.7;
+	subsystems.chamber_intake_pos = 180;
+	subsystems.chamber_shoot_pos = 3145/52;
+	subsystems.chamber_idle_pos = 7515/52;
+	subsystems.intake_idle_pos = 3605/104;
+	subsystems.intake_intake_pos = 112 - 7;
 	subsystems.intake_roller_in = -1;
 	subsystems.intake_roller_out = 1;
   // prevents devices from actuating on startup.
@@ -86,7 +84,9 @@ void setup() {
   maestro.setUpdatePeriod(40); // speed up maestro updates.
 
   // reverses forward direction of left tankdrive wheels.
-  chassis.reverseRightMotors(true);
+  //chassis.reverseRightMotors(true);
+	chassis.reverseMotor(1, true);
+	chassis.reverseMotor(4, true);
   gyro.init();
   gyro.calibrate();
 
@@ -247,14 +247,16 @@ gyro.iterate();
   if (network.getLastPS2PacketTime() > 500 || !armMotors)
   {
     //maestro.queTarget(3, 0);
+    digitalWrite(2, LOW);
     digitalWrite(4, LOW);
     maestro.queTarget(6, 0);
     maestro.queTarget(9, 0);
     maestro.queTarget(12, 0);
     maestro.queTarget(15, 0);
-
+	subsystems.setSystemsIdle();
     shooter.setPower(0);
   } else {
+    digitalWrite(2, HIGH);
     digitalWrite(4, HIGH);
     //maestro.queTarget(3, 7000);
     maestro.queTarget(6, 7000);
