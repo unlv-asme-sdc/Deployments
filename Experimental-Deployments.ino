@@ -86,7 +86,8 @@ void setup() {
   // reverses forward direction of left tankdrive wheels.
   //chassis.reverseRightMotors(true);
 	chassis.reverseMotor(1, true);
-	chassis.reverseMotor(4, true);
+	chassis.reverseMotor(3,true);
+	//chassis.reverseMotor(4, true);
   gyro.init();
   gyro.calibrate();
 
