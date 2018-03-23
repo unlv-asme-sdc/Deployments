@@ -16,8 +16,10 @@ float shooterpower = 0;
 //
 
 // MiniMaestroServices construction
-//SoftwareSerial Serial1(22, 23); // Connect A1 to Maestro's RX. A0 must remain disconnected.
+// 52 recieve, 50 transmit
+//SoftwareSerial maestroSerial(52, 50); // Connect A1 to Maestro's RX. A0 must remain disconnected.
 #define maestroSerial Serial1
+
 MiniMaestroService maestro(maestroSerial);
 
 // Subsystems construction
@@ -85,8 +87,10 @@ void setup() {
 
   // reverses forward direction of left tankdrive wheels.
   //chassis.reverseRightMotors(true);
-	chassis.reverseMotor(1, true);
+	//chassis.reverseMotor(1, true);
+	chassis.reverseMotor(2, true);
 	chassis.reverseMotor(3,true);
+	//chassis.reverseMotor(4, true);
 	//chassis.reverseMotor(4, true);
   gyro.init();
   gyro.calibrate();
@@ -153,12 +157,15 @@ gyro.iterate();
 	subsystems.setShooter(shooterpower);
 
     Vec2 vec = Vec2(ps2x.JoyStick(PSS_LX), -ps2x.JoyStick(PSS_LY));
+chassis.drive(0, 0.5, 0);
+
     if(gyrodrive)
     {
     	chassis.drive(Vec2::angle(vec) - gyro.getRelativeYaw()*3.14/180, Vec2::magnitude(vec)*thrustcap, -ps2x.JoyStick(PSS_RX)*turncap);
     } else {
 	    chassis.drive(Vec2::angle(vec), Vec2::magnitude(vec)*thrustcap, -ps2x.JoyStick(PSS_RX)*turncap);
     }
+
     if(Cross)
     {
     	gyrodrive = !gyrodrive;
@@ -206,9 +213,9 @@ gyro.iterate();
     if (R2_Pressed)
     {
 	subsystems.pushSequence(CHAMBER_IDLE,0);
-	subsystems.pushSequence(SHOOTER_POWER, 400, (float)0.0);
-	subsystems.pushSequence(CHAMBER_SHOOT, 400);
-	subsystems.pushSequence(SHOOTER_POWER, 0, (float)-1.0);
+	subsystems.pushSequence(SHOOTER_POWER, 2000, (float)0.0);
+	subsystems.pushSequence(CHAMBER_SHOOT, 3000);
+	subsystems.pushSequence(SHOOTER_POWER, 0, (float)1.0);
 	subsystems.pushSequence(CHAMBER_IDLE, 0, true);
     }
 
@@ -216,9 +223,9 @@ gyro.iterate();
     if (L2)
     {
 	subsystems.pushSequence(CHAMBER_IDLE,0);
-	subsystems.pushSequence(SHOOTER_POWER, 400, (float)0.0);
-	subsystems.pushSequence(CHAMBER_SHOOT, 400);
-	subsystems.pushSequence(SHOOTER_POWER, 0, (float)-0.70);
+	subsystems.pushSequence(SHOOTER_POWER, 2000, (float)0.0);
+	subsystems.pushSequence(CHAMBER_SHOOT, 3000);
+	subsystems.pushSequence(SHOOTER_POWER, 0, (float)0.70);
 	subsystems.pushSequence(CHAMBER_IDLE, 0, true);
     }
 
