@@ -11,6 +11,9 @@
 #include <OSubsystems.h>
 // DELETE MEEEE
 float shooterpower = 0;
+float shooterMin = 60;
+float shooterMax = 180;
+float shooterangle = (shooterMin + shooterMax) / 2;
 
 
 //
@@ -144,17 +147,21 @@ gyro.iterate();
 
 	if(PAD_Up)
 	{
-		shooterpower += .03;
+		//shooterpower += .03;
+		shooterangle += 30; 
 	}
 	if(PAD_Down)
 	{
-		shooterpower-= .03;
+		//shooterpower-= .03;
+		shooterangle -= 30; 
 	}
 	if(PAD_Right)
 	{
 		shooterpower = 0;
 	}
+	shooterangle = constrain(shooterangle, shooterMin, shooterMax);
 	subsystems.setShooter(shooterpower);
+	subsystems.setShooterAngle(shooterpower);
 
     Vec2 vec = Vec2(ps2x.JoyStick(PSS_LX), -ps2x.JoyStick(PSS_LY));
 chassis.drive(0, 0.5, 0);
