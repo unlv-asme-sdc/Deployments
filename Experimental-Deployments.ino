@@ -31,7 +31,6 @@ float chamber_shoot = 57;
 float shooterservo_Min = 2285/13;
 float shooterservo_Max = 3565/52;
 
-
 //
 
 // MiniMaestroServices construction
@@ -75,6 +74,11 @@ unsigned long last_update;
 // speed caps
 float thrustcap = 1;
 float turncap = 1;
+bool speedtoggle = false;
+float firstTurnCap = 1;
+float firstSpeedCap = 1;
+float SecondaryTurnCap = 0.8;
+float SecondarySpeedCap = 0.8;
 void setup() {
 	subsystems.chamber_intake_pos = chamber_intake;
 	subsystems.chamber_shoot_pos = chamber_shoot;
@@ -162,6 +166,22 @@ gyro.iterate();
     bool L2_Released = ps2x.ButtonReleased(PSB_L2);
     bool Select_Pressed = ps2x.ButtonPressed(PSB_SELECT);
     bool Start_Pressed = ps2x.ButtonPressed(PSB_START);
+//START OF SPEED TOGGLE:
+	bool L3_Pressed = ps2x.ButtonPressed(PSB_L3);
+	if(L3_Pressed)
+	{
+		speedtoggle = !speedtoggle;
+		if(speedtoggle)
+		{
+			thrustcap = firstSpeedCap;
+			turncap = firstTurnCap;
+		} else {
+			thrustcap = SecondarySpeedCap;
+			turncap = SecondaryTurnCap;
+		}
+
+
+	}
 
 	if(PAD_Up)
 	{
@@ -197,18 +217,16 @@ chassis.drive(0, 0.5, 0);
     {
     	gyrodrive = !gyrodrive;
     }
+
     if(Triangle)
     {
     	gyro.zero();
     }
-    if(Square)
-    {
-    	gyro.trim(1);
-    }
-    if(Circle)
-    {
-    	gyro.trim(-1);
-    }
+
+	if(Circle)
+	{
+		
+	}
     
 
     // Intake
