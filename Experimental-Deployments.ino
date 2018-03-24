@@ -20,7 +20,7 @@ float shooterangle = (shooterMin + shooterMax) / 2;
 //intake angles
 	// Intake Servos
 float intakeservo_idle = 3605/52;
-float intakeservo_intake = 7365/52;
+float intakeservo_intake = 7365/52 + 3;
 float intakeservo_initial = 2455/52;
 	// Chamber Servo
 float chamber_intake = 325/2;
