@@ -292,7 +292,7 @@ chassis.drive(0, 0.5, 0);
 			gyro.init();
 			if(gyro.getInitialized())
 			{
-	nit			gyro.calibrate();
+				gyro.calibrate();
 				gyro.zero();
 			}
 				
