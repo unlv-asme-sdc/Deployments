@@ -18,8 +18,20 @@ float shooterMin = 60;
 float shooterMax = 180;
 float shooterangle = (shooterMin + shooterMax) / 2;
 
-//intake angles
+
+float intakeservo_idle = 1015/26;
+float intakeservo_intake = 1525/13;
+float intakeservo_initial = 9475/52;
+	// Chamber Servo
+float chamber_intake = 325/2;
+float chamber_idle = 1600/13;
+float chamber_shoot = 575/26;
+	// Shooter Servo
+float shooterservo_Min = 2100/13;
+float shooterservo_Max = 3065/52;
+//intake angles: Correcintg Calculator Mistake
 	// Intake Servos
+/*
 float intakeservo_idle = 3605/52;
 float intakeservo_intake = 7365/52 + 3;
 float intakeservo_initial = 2455/52;
@@ -30,6 +42,7 @@ float chamber_shoot = 575/26;
 	// Shooter Servo
 float shooterservo_Min = 2100/13;
 float shooterservo_Max = 3065/52;
+*/
 
 
 //
@@ -272,11 +285,17 @@ chassis.drive(0, 0.5, 0);
 		if(gyro.getInitialized())
 		{
 			gyro.calibrate();
-			gyro.init();
+			//gyro.init();
 			gyro.zero();
 			
 		} else {
 			gyro.init();
+			if(gyro.getInitialized())
+			{
+	nit			gyro.calibrate();
+				gyro.zero();
+			}
+				
 		}
 
 	}
