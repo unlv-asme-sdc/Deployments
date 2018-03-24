@@ -1,4 +1,4 @@
-// Renegade Constants
+// Desperado Constants
 #include <SoftwareSerial.h>
 #include <MiniMaestroService.h>
 #include <TalonSR.h>
@@ -20,16 +20,16 @@ float shooterangle = (shooterMin + shooterMax) / 2;
 
 //intake angles
 	// Intake Servos
-float intakeservo_idle = 3605/52;
-float intakeservo_intake = 7365/52 + 3;
-float intakeservo_initial = 2455/52;
+float intakeservo_idle = 825/26;
+float intakeservo_intake = 5675/52;
+float intakeservo_initial = 725/52;
 	// Chamber Servo
-float chamber_intake = 325/2;
-float chamber_idle = 1600/13;
-float chamber_shoot = 575/26;
+float chamber_intake = 9205/52;
+float chamber_idle = 7745/52;
+float chamber_shoot = 57;
 	// Shooter Servo
-float shooterservo_Min = 2100/13;
-float shooterservo_Max = 3065/52;
+float shooterservo_Min = 2285/13;
+float shooterservo_Max = 3565/52;
 
 
 //
@@ -108,7 +108,7 @@ void setup() {
 	//chassis.reverseMotor(1, true);
 	chassis.reverseMotor(2, true);
 	chassis.reverseMotor(3,true);
-	chassis.reverseMotor(4, true);// Uncomment this for Desperado
+	//chassis.reverseMotor(4, true);// Uncomment this for Desperado
 	//chassis.reverseMotor(4, true);
   gyro.init();
   gyro.calibrate();
