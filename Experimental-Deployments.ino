@@ -18,7 +18,17 @@ float shooterMax = 180;
 float shooterangle = (shooterMin + shooterMax) / 2;
 
 //intake angles
-float init_intake_angle = 119;
+	// Intake Servos
+float intakeservo_idle = 3605/52;
+float intakeservo_intake = 7365/52;
+float intakeservo_initial = 2455/52;
+	// Chamber Servo
+float chamber_intake = 325/2;
+float chamber_idle = 1600/13;
+float chamber_shoot = 575/26;
+	// Shooter Servo
+float shooterservo_Min = 2100/13;
+float shooterservo_Max = 3065/52;
 
 
 //
@@ -34,7 +44,6 @@ MiniMaestroService maestro(maestroSerial);
 HS485 chamber = HS485(maestro, 0); // Some objects can use MiniMaestroService to controll devices. See docs.
 HS485 intake = HS485(maestro, 1);
 HS485 shooter_servo = HS485(maestro, 3);
-float shooter_pos = 120;
 TalonSR shooter = TalonSR(maestro, 2);
 PololuG2 intakemotor = PololuG2(maestro, 9, 10, 11, true);
 // Drive base construction
@@ -66,11 +75,11 @@ unsigned long last_update;
 float thrustcap = 1;
 float turncap = 1;
 void setup() {
-	subsystems.chamber_intake_pos = 180;
-	subsystems.chamber_shoot_pos = 3145/52;
-	subsystems.chamber_idle_pos = 7515/52;
-	subsystems.intake_idle_pos = 3605/104;
-	subsystems.intake_intake_pos = 112 - 7;
+	subsystems.chamber_intake_pos = chamber_intake;
+	subsystems.chamber_shoot_pos = chamber_shoot;
+	subsystems.chamber_idle_pos = chamber_idle;
+	subsystems.intake_idle_pos = intakeservo_idle;
+	subsystems.intake_intake_pos = intakeservo_intake;
 	subsystems.intake_roller_in = -1;
 	subsystems.intake_roller_out = 1;
   // prevents devices from actuating on startup.
@@ -98,7 +107,7 @@ void setup() {
 	//chassis.reverseMotor(1, true);
 	chassis.reverseMotor(2, true);
 	chassis.reverseMotor(3,true);
-	//chassis.reverseMotor(4, true);
+	chassis.reverseMotor(4, true);// Uncomment this for Desperado
 	//chassis.reverseMotor(4, true);
   gyro.init();
   gyro.calibrate();
@@ -106,7 +115,7 @@ void setup() {
   // prevents devices from actuating on startup.
   delay(1500);
 	subsystems.setShooterAngle(shooterMin);
-	subsystems.setIntakeAngle(119);
+	subsystems.setIntakeAngle(intakeservo_initial);
 }
 
 void ledService()
@@ -141,6 +150,7 @@ gyro.iterate();
     bool PAD_Up = ps2x.ButtonPressed(PSB_PAD_UP);
     bool PAD_Down = ps2x.ButtonPressed(PSB_PAD_DOWN);
     bool PAD_Right = ps2x.ButtonPressed(PSB_PAD_RIGHT);
+    bool PAD_Left = ps2x.ButtonPressed(PSB_PAD_LEFT);
     bool R1_Pressed = ps2x.ButtonPressed(PSB_R1);
     bool R1_Released = ps2x.ButtonReleased(PSB_R1);
     bool L1_Pressed = ps2x.ButtonPressed(PSB_L1);
@@ -155,16 +165,18 @@ gyro.iterate();
 	if(PAD_Up)
 	{
 		shooterpower += .03;
-		//shooterangle += 30; 
 	}
 	if(PAD_Down)
 	{
 		shooterpower-= .03;
-		//shooterangle -= 30; 
 	}
 	if(PAD_Right)
 	{
-		shooterpower = 0;
+		shooterangle -= 10; 
+	}
+	if(PAD_Left)
+	{
+		shooterangle += 10; 
 	}
 	shooterangle = constrain(shooterangle, shooterMin, shooterMax);
 	subsystems.setShooter(shooterpower);
@@ -198,7 +210,6 @@ chassis.drive(0, 0.5, 0);
     }
     
 
-	subsystems.setShooterAngle(shooter_pos);
     // Intake
     // actuate devices to intake tennis balls. Arguments are experimetnally determined / calculated.
     if (R1_Pressed)
@@ -226,20 +237,22 @@ chassis.drive(0, 0.5, 0);
     // Actuate Chamber (put tennis ball into shooter)
     if (R2_Pressed)
     {
-	subsystems.pushSequence(CHAMBER_IDLE,0);
-	subsystems.pushSequence(SHOOTER_POWER, 2000, (float)0.0);
-	subsystems.pushSequence(CHAMBER_SHOOT, 3000);
-	subsystems.pushSequence(SHOOTER_POWER, 0, (float)1.0);
+	subsystems.pushSequence(CHAMBER_IDLE,1500);
+	//subsystems.pushSequence(CHAMBER_IDLE,0);
+	//subsystems.pushSequence(SHOOTER_POWER, 2000, (float)0.0);
+	subsystems.pushSequence(CHAMBER_SHOOT, 1500);
+	//subsystems.pushSequence(SHOOTER_POWER, 0, (float)1.0);
 	subsystems.pushSequence(CHAMBER_IDLE, 0, true);
     }
 
     //Arm Shooter
     if (L2)
     {
-	subsystems.pushSequence(CHAMBER_IDLE,0);
-	subsystems.pushSequence(SHOOTER_POWER, 2000, (float)0.0);
-	subsystems.pushSequence(CHAMBER_SHOOT, 3000);
-	subsystems.pushSequence(SHOOTER_POWER, 0, (float)0.70);
+	subsystems.pushSequence(CHAMBER_IDLE,1500);
+	//subsystems.pushSequence(CHAMBER_IDLE,0);
+	//subsystems.pushSequence(SHOOTER_POWER, 2000, (float)0.0);
+	subsystems.pushSequence(CHAMBER_SHOOT, 1500);
+	//subsystems.pushSequence(SHOOTER_POWER, 0, (float)0.70);
 	subsystems.pushSequence(CHAMBER_IDLE, 0, true);
     }
 
@@ -278,7 +291,6 @@ chassis.drive(0, 0.5, 0);
     maestro.queTarget(9, 0);
     maestro.queTarget(12, 0);
     maestro.queTarget(15, 0);
-	subsystems.setSystemsIdle();
     shooter.setPower(0);
   } else {
     digitalWrite(2, HIGH);
