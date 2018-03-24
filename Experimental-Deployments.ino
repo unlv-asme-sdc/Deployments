@@ -19,8 +19,8 @@ float shooterMax = 180;
 float shooterangle = (shooterMin + shooterMax) / 2;
 
 
-float intakeservo_idle = 1015/26;
-float intakeservo_intake = 1525/13;
+float intakeservo_idle = 805/13 + 20;
+float intakeservo_intake = 3815/26;
 float intakeservo_initial = 9475/52;
 	// Chamber Servo
 float chamber_intake = 325/2;
@@ -251,22 +251,24 @@ chassis.drive(0, 0.5, 0);
     // Actuate Chamber (put tennis ball into shooter)
     if (R2_Pressed)
     {
-	subsystems.pushSequence(CHAMBER_IDLE,1500);
-	//subsystems.pushSequence(CHAMBER_IDLE,0);
-	//subsystems.pushSequence(SHOOTER_POWER, 2000, (float)0.0);
+	//subsystems.pushSequence(CHAMBER_IDLE,1500);
+	subsystems.pushSequence(CHAMBER_IDLE,0);
+	subsystems.pushSequence(SHOOTER_POWER, 2000, (float)0.0);
 	subsystems.pushSequence(CHAMBER_SHOOT, 1500);
-	//subsystems.pushSequence(SHOOTER_POWER, 0, (float)1.0);
+	subsystems.pushSequence(SHOOTER_POWER, 0, (float)1.0);
+	subsystems.pushSequence(SHOOTER_ANGLE, 0, (float)4645/52);
 	subsystems.pushSequence(CHAMBER_IDLE, 0, true);
     }
 
     //Arm Shooter
     if (L2)
     {
-	subsystems.pushSequence(CHAMBER_IDLE,1500);
-	//subsystems.pushSequence(CHAMBER_IDLE,0);
-	//subsystems.pushSequence(SHOOTER_POWER, 2000, (float)0.0);
+	//subsystems.pushSequence(CHAMBER_IDLE,1500);
+	subsystems.pushSequence(CHAMBER_IDLE,0);
+	subsystems.pushSequence(SHOOTER_POWER, 2000, (float)0.0);
 	subsystems.pushSequence(CHAMBER_SHOOT, 1500);
-	//subsystems.pushSequence(SHOOTER_POWER, 0, (float)0.70);
+	subsystems.pushSequence(SHOOTER_POWER, 0, (float)1);
+	subsystems.pushSequence(SHOOTER_ANGLE, 0, (float)5685/52);
 	subsystems.pushSequence(CHAMBER_IDLE, 0, true);
     }
 
