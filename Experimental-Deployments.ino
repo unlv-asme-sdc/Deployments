@@ -1,3 +1,5 @@
+
+// Wireless Fix for Renegade Robot
 // Renegade Constants
 #include <SoftwareSerial.h>
 #include <MiniMaestroService.h>
@@ -83,12 +85,20 @@ bool gyrodrive = false;
 float leftvalue = 0;
 float rightvalue = 0;
 unsigned long last_blink;
+bool blink_bool = false;
 unsigned long last_update;
 
 // speed caps
 float thrustcap = 1;
 float turncap = 1;
 void setup() {
+  myPacketSerial.begin(115200);
+  myPacketSerial.setPacketHandler([](const uint8_t* buffer, size_t size) {
+    network.processPacketFromSender(myPacketSerial, buffer, size);
+  });
+  maestroSerial.begin(57600); 
+  // binds radio PacketSerial(encoding&decoding services) to NetworkTable class. Uses lambda expressions.
+	pinMode(13, OUTPUT);
 	subsystems.chamber_intake_pos = chamber_intake;
 	subsystems.chamber_shoot_pos = chamber_shoot;
 	subsystems.chamber_idle_pos = chamber_idle;
@@ -105,12 +115,6 @@ void setup() {
   ps2x.read_gamepad();
 
   // enable debug usb (Serial) and radio serial (Serial1)
-  maestroSerial.begin(57600); 
-  // binds radio PacketSerial(encoding&decoding services) to NetworkTable class. Uses lambda expressions.
-  myPacketSerial.begin(115200);
-  myPacketSerial.setPacketHandler([](const uint8_t* buffer, size_t size) {
-    network.processPacketFromSender(myPacketSerial, buffer, size);
-  });
 
   // sets ps2x controlls.
   network.setPS2(ps2x);
@@ -123,8 +127,8 @@ void setup() {
 	chassis.reverseMotor(3,true);
 	chassis.reverseMotor(4, true);// Uncomment this for Desperado
 	//chassis.reverseMotor(4, true);
-  gyro.init();
-  gyro.calibrate();
+  //gyro.init();
+  //gyro.calibrate();
 
   // prevents devices from actuating on startup.
   delay(1500);
@@ -135,18 +139,23 @@ void setup() {
 void ledService()
 {
   // cant add any led services right now as pin 13 is being used for driving a pololuG2.
+	unsigned long timer = millis();
+	if((timer - last_blink) > 500)
+	{
+		network.putBufferPair(0, gyro.getAbsYaw());
+		network.putBufferPair(1, gyro.getRelativeYaw());
+		network.sendBuffer(&myPacketSerial, 6);
+		blink_bool = !blink_bool;
+		last_blink = timer;
+		digitalWrite(13, blink_bool);
+
+	}
 }
 
 void loop() {
-  // trigger network services
-  myPacketSerial.update();
-gyro.iterate();
-
-  // trigger led (human readable) services.
   ledService();
-
-  // drive chassis
-  
+  myPacketSerial.update();
+  gyro.iterate();
 
   // update target values every 9ms
   if (millis() - last_update > 9)
@@ -323,7 +332,6 @@ chassis.drive(0, 0.5, 0);
     maestro.queTarget(12, 7000);
     maestro.queTarget(15, 7000);
     //maestro.queTarget(3, 7000);
-
   }
 
   // Trigger MiniMaestroService
