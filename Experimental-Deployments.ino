@@ -14,41 +14,41 @@
 #include <OSubsystems.h>
 // DELETE MEEEE
 float shooterpower = 0;
-
-//shooter angles
+float shooterChamberDelay = 750;
+float shooterPostChamberDelay = 750;
+/*
+//shooter angles Desperado
 float shooterMin = 60;
 float shooterMax = 180;
 float shooterangle = (shooterMin + shooterMax) / 2;
 
 
-float intakeservo_idle = 805/13 + 20;
-float intakeservo_intake = 3815/26;
-float intakeservo_initial = 9475/52;
+float intakeservo_idle = 10.3;
+float intakeservo_intake = 81.13;
+float intakeservo_initial = intakeservo_idle;
 	// Chamber Servo
-float chamber_intake = 325/2;
-float chamber_idle = 1600/13;
-float chamber_shoot = 575/26;
+float chamber_intake = 177;
+float chamber_idle = 156.3;
+float chamber_shoot = 65.6;
 	// Shooter Servo
-float shooterservo_Min = 2100/13;
-float shooterservo_Max = 3065/52;
-//intake angles: Correcintg Calculator Mistake
-	// Intake Servos
-/*
-float intakeservo_idle = 3605/52;
-float intakeservo_intake = 7365/52 + 3;
-float intakeservo_initial = 2455/52;
-	// Chamber Servo
-float chamber_intake = 325/2;
-float chamber_idle = 1600/13;
-float chamber_shoot = 575/26;
-	// Shooter Servo
-float shooterservo_Min = 2100/13;
-float shooterservo_Max = 3065/52;
+float shooterservo_Min = 146;
+float shooterservo_Max = 59.7;
 */
+//shooter angles Renegade
+float shooterMin = 62.69;
+float shooterMax = 144.5;
+float shooterangle = (shooterMin + shooterMax) / 2;
 
 
+float intakeservo_idle = 77.4;
+float intakeservo_intake = 146.2;
+float intakeservo_initial = 77.4;
+	// Chamber Servo
+float chamber_intake = 166.6;
+float chamber_idle = 134;
+float chamber_shoot = 31.3;
+	// Shooter Servo
 //
-
 // MiniMaestroServices construction
 // 52 recieve, 50 transmit
 //SoftwareSerial maestroSerial(52, 50); // Connect A1 to Maestro's RX. A0 must remain disconnected.
@@ -60,7 +60,10 @@ MiniMaestroService maestro(maestroSerial);
 HS485 chamber = HS485(maestro, 0); // Some objects can use MiniMaestroService to controll devices. See docs.
 HS485 intake = HS485(maestro, 1);
 HS485 shooter_servo = HS485(maestro, 3);
-TalonSR shooter = TalonSR(maestro, 2);
+//Renegade Only
+//TalonSR shooter = TalonSR(maestro, 2);
+//Desperado
+PololuG2 shooter = PololuG2(maestro, 6, 7, 8, true);
 PololuG2 intakemotor = PololuG2(maestro, 9, 10, 11, true);
 // Drive base construction
 PololuG2 motor1 = PololuG2(maestro, 12, 13, 14, true); 
@@ -121,12 +124,19 @@ void setup() {
   maestro.setUpdatePeriod(40); // speed up maestro updates.
 
   // reverses forward direction of left tankdrive wheels.
-  //chassis.reverseRightMotors(true);
+	// Renegade
 	//chassis.reverseMotor(1, true);
-	chassis.reverseMotor(2, true);
-	chassis.reverseMotor(3,true);
+	//chassis.reverseMotor(2, true);
+	//chassis.reverseMotor(3,true);
 	chassis.reverseMotor(4, true);// Uncomment this for Desperado
+/*
+	// Desperado
+	chassis.reverseMotor(1, true);
+	//chassis.reverseMotor(2, true);
+	//chassis.reverseMotor(3,true);
+	//chassis.reverseMotor(4, true);// Uncomment this for Desperado
 	//chassis.reverseMotor(4, true);
+*/
   //gyro.init();
   //gyro.calibrate();
 
@@ -262,9 +272,9 @@ chassis.drive(0, 0.5, 0);
     {
 	//subsystems.pushSequence(CHAMBER_IDLE,1500);
 	subsystems.pushSequence(CHAMBER_IDLE,0);
-	subsystems.pushSequence(SHOOTER_POWER, 2000, (float)0.0);
-	subsystems.pushSequence(CHAMBER_SHOOT, 1500);
-	subsystems.pushSequence(SHOOTER_POWER, 0, (float)1.0);
+	subsystems.pushSequence(SHOOTER_POWER, shooterPostChamberDelay, (float)0.0);
+	subsystems.pushSequence(CHAMBER_SHOOT, shooterChamberDelay);
+	subsystems.pushSequence(SHOOTER_POWER, 0, (float)(1));
 	subsystems.pushSequence(SHOOTER_ANGLE, 0, (float)4645/52);
 	subsystems.pushSequence(CHAMBER_IDLE, 0, true);
     }
@@ -274,15 +284,24 @@ chassis.drive(0, 0.5, 0);
     {
 	//subsystems.pushSequence(CHAMBER_IDLE,1500);
 	subsystems.pushSequence(CHAMBER_IDLE,0);
-	subsystems.pushSequence(SHOOTER_POWER, 2000, (float)0.0);
-	subsystems.pushSequence(CHAMBER_SHOOT, 1500);
-	subsystems.pushSequence(SHOOTER_POWER, 0, (float)1);
+	subsystems.pushSequence(SHOOTER_POWER, shooterPostChamberDelay, (float)0.0);
+	subsystems.pushSequence(CHAMBER_SHOOT, shooterChamberDelay);
+	subsystems.pushSequence(SHOOTER_POWER, 0, (float)(1));
 	subsystems.pushSequence(SHOOTER_ANGLE, 0, (float)5685/52);
 	subsystems.pushSequence(CHAMBER_IDLE, 0, true);
     }
 
     ps2x.read_gamepad(); // clear release&pressed flags.
     last_update = millis();
+
+    if(shooter.getTarget() == 0)
+    {
+	maestro.queTarget(6, 0);
+        shooter.setVelocity(0.33);
+    } else {
+	maestro.queTarget(6, 7000);
+	shooter.setVelocity(100);
+    }
 
     PololuG2::iterate();
 
@@ -318,7 +337,6 @@ chassis.drive(0, 0.5, 0);
     //maestro.queTarget(3, 0);
     digitalWrite(2, LOW);
     digitalWrite(4, LOW);
-    maestro.queTarget(6, 0);
     maestro.queTarget(9, 0);
     maestro.queTarget(12, 0);
     maestro.queTarget(15, 0);
@@ -327,7 +345,6 @@ chassis.drive(0, 0.5, 0);
     digitalWrite(2, HIGH);
     digitalWrite(4, HIGH);
     //maestro.queTarget(3, 7000);
-    maestro.queTarget(6, 7000);
     maestro.queTarget(9, 7000);
     maestro.queTarget(12, 7000);
     maestro.queTarget(15, 7000);
