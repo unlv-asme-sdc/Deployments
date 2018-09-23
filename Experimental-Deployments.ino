@@ -50,10 +50,8 @@ float chamber_shoot = 31.3;
 	// Shooter Servo
 //
 // MiniMaestroServices construction
-// 52 recieve, 50 transmit
-//SoftwareSerial maestroSerial(52, 50); // Connect A1 to Maestro's RX. A0 must remain disconnected.
-#define maestroSerial Serial1
-
+// 3 recieve, 5 transmit
+SoftwareSerial maestroSerial(3, 5); // Connect A1 to Maestro's RX. A0 must remain disconnected.
 MiniMaestroService maestro(maestroSerial);
 
 // Subsystems construction
@@ -81,9 +79,7 @@ NetworkTable network = NetworkTable(10, 10);
 PacketSerial myPacketSerial;
 
 // LSM Devices (GYRO)
-LSMHeadless gyro;
 bool armMotors = true;
-bool gyrodrive = false;
 
 float leftvalue = 0;
 float rightvalue = 0;
@@ -95,11 +91,12 @@ unsigned long last_update;
 float thrustcap = 1;
 float turncap = 1;
 void setup() {
-  myPacketSerial.begin(115200);
+  Serial1.begin(115200);
+  myPacketSerial.setStream(&Serial1);
   myPacketSerial.setPacketHandler([](const uint8_t* buffer, size_t size) {
     network.processPacketFromSender(myPacketSerial, buffer, size);
   });
-  maestroSerial.begin(57600); 
+  maestroSerial.begin(57600); // 9600 
   // binds radio PacketSerial(encoding&decoding services) to NetworkTable class. Uses lambda expressions.
 	pinMode(13, OUTPUT);
 	subsystems.chamber_intake_pos = chamber_intake;
@@ -117,11 +114,10 @@ void setup() {
   ps2x.config_gamepad();
   ps2x.read_gamepad();
 
-  // enable debug usb (Serial) and radio serial (Serial1)
 
   // sets ps2x controlls.
   network.setPS2(ps2x);
-  maestro.setUpdatePeriod(40); // speed up maestro updates.
+  maestro.setUpdatePeriod(100); // speed up maestro updates.
 
   // reverses forward direction of left tankdrive wheels.
 	// Renegade
@@ -137,8 +133,6 @@ void setup() {
 	//chassis.reverseMotor(4, true);// Uncomment this for Desperado
 	//chassis.reverseMotor(4, true);
 */
-  //gyro.init();
-  //gyro.calibrate();
 
   // prevents devices from actuating on startup.
   delay(1500);
@@ -152,8 +146,6 @@ void ledService()
 	unsigned long timer = millis();
 	if((timer - last_blink) > 500)
 	{
-		network.putBufferPair(0, gyro.getAbsYaw());
-		network.putBufferPair(1, gyro.getRelativeYaw());
 		network.sendBuffer(&myPacketSerial, 6);
 		blink_bool = !blink_bool;
 		last_blink = timer;
@@ -165,7 +157,6 @@ void ledService()
 void loop() {
   ledService();
   myPacketSerial.update();
-  gyro.iterate();
 
   // update target values every 9ms
   if (millis() - last_update > 9)
@@ -218,29 +209,7 @@ void loop() {
     Vec2 vec = Vec2(ps2x.JoyStick(PSS_LX), -ps2x.JoyStick(PSS_LY));
 chassis.drive(0, 0.5, 0);
 
-    if(gyrodrive)
-    {
-    	chassis.drive(Vec2::angle(vec) - gyro.getRelativeYaw()*3.14/180, Vec2::magnitude(vec)*thrustcap, -ps2x.JoyStick(PSS_RX)*turncap);
-    } else {
-	    chassis.drive(Vec2::angle(vec), Vec2::magnitude(vec)*thrustcap, -ps2x.JoyStick(PSS_RX)*turncap);
-    }
-
-    if(Cross)
-    {
-    	gyrodrive = !gyrodrive;
-    }
-    if(Triangle)
-    {
-    	gyro.zero();
-    }
-    if(Square)
-    {
-    	gyro.trim(1);
-    }
-    if(Circle)
-    {
-    	gyro.trim(-1);
-    }
+    chassis.drive(Vec2::angle(vec), Vec2::magnitude(vec)*thrustcap, -ps2x.JoyStick(PSS_RX)*turncap);
     
 
     // Intake
@@ -275,7 +244,7 @@ chassis.drive(0, 0.5, 0);
 	subsystems.pushSequence(SHOOTER_POWER, shooterPostChamberDelay, (float)0.0);
 	subsystems.pushSequence(CHAMBER_SHOOT, shooterChamberDelay);
 	subsystems.pushSequence(SHOOTER_POWER, 0, (float)(1));
-	subsystems.pushSequence(SHOOTER_ANGLE, 0, (float)4645/52);
+	subsystems.pushSequence(SHOOTER_ANGLE, 0, (float)(4645/52));
 	subsystems.pushSequence(CHAMBER_IDLE, 0, true);
     }
 
@@ -309,25 +278,6 @@ chassis.drive(0, 0.5, 0);
 	if(Select_Pressed)
 	{
 		armMotors = !armMotors;
-	}
-	if(Start_Pressed)
-	{
-		if(gyro.getInitialized())
-		{
-			gyro.calibrate();
-			//gyro.init();
-			gyro.zero();
-			
-		} else {
-			gyro.init();
-			if(gyro.getInitialized())
-			{
-				gyro.calibrate();
-				gyro.zero();
-			}
-				
-		}
-
 	}
   }
 	subsystems.iterate();
