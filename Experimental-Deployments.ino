@@ -41,7 +41,7 @@ float shooterangle = (shooterMin + shooterMax) / 2;
 
 
 float intakeservo_idle = 77.4;
-float intakeservo_intake = 146.2;
+float intakeservo_intake = 153;//146.2
 float intakeservo_initial = 77.4;
 	// Chamber Servo
 float chamber_intake = 166.6;
@@ -61,8 +61,7 @@ HS485 shooter_servo = HS485(maestro, 3);
 //Renegade Only
 //TalonSR shooter = TalonSR(maestro, 2);
 //Desperado
-PololuG2 shooter = PololuG2(maestro, 6, 7, 8, true);
-PololuG2 intakemotor = PololuG2(maestro, 9, 10, 11, true);
+PololuG2 shooter = PololuG2(maestro, 6, 7, 8, true); PololuG2 intakemotor = PololuG2(maestro, 9, 10, 11, true);
 // Drive base construction
 PololuG2 motor1 = PololuG2(maestro, 12, 13, 14, true); 
 PololuG2 motor2 = PololuG2(2, 9, 7, true);
@@ -253,10 +252,12 @@ chassis.drive(0, 0.5, 0);
     {
 	//subsystems.pushSequence(CHAMBER_IDLE,1500);
 	subsystems.pushSequence(CHAMBER_IDLE,0);
+	subsystems.pushSequence(INTAKE_SERVO_ANGLE, 0, intakeservo_idle);
 	subsystems.pushSequence(SHOOTER_POWER, shooterPostChamberDelay, (float)0.0);
+	subsystems.pushSequence(INTAKE_SERVO_ANGLE, 0, (float)115);
 	subsystems.pushSequence(CHAMBER_SHOOT, shooterChamberDelay);
 	subsystems.pushSequence(SHOOTER_POWER, 0, (float)(1));
-	subsystems.pushSequence(SHOOTER_ANGLE, 0, (float)5685/52);
+	subsystems.pushSequence(SHOOTER_ANGLE, 0, (float)(5685/52 + 10));
 	subsystems.pushSequence(CHAMBER_IDLE, 0, true);
     }
 
