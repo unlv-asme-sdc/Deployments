@@ -209,7 +209,6 @@ void loop() {
 chassis.drive(0, 0.5, 0);
 
     chassis.drive(Vec2::angle(vec), Vec2::magnitude(vec)*thrustcap, -ps2x.JoyStick(PSS_RX)*turncap);
-    
 
     // Intake
     // actuate devices to intake tennis balls. Arguments are experimetnally determined / calculated.
@@ -248,7 +247,7 @@ chassis.drive(0, 0.5, 0);
     }
 
     //Arm Shooter
-    if (L2)
+    if (L2_Pressed)
     {
 	//subsystems.pushSequence(CHAMBER_IDLE,1500);
 	subsystems.pushSequence(CHAMBER_IDLE,0);
@@ -262,7 +261,6 @@ chassis.drive(0, 0.5, 0);
     }
 
     ps2x.read_gamepad(); // clear release&pressed flags.
-    last_update = millis();
 
     if(shooter.getTarget() == 0)
     {
@@ -273,13 +271,13 @@ chassis.drive(0, 0.5, 0);
 	shooter.setVelocity(100);
     }
 
-    PololuG2::iterate();
-
 	// Arm Motors
 	if(Select_Pressed)
 	{
 		armMotors = !armMotors;
 	}
+    last_update = millis();
+    PololuG2::iterate();
   }
 	subsystems.iterate();
 
